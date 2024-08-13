@@ -20,8 +20,8 @@ def ssh_multiple_connections(hosts_info, command):
             user = stdout.read().decode().strip()
             users.append(user)
             hostnames.append(hostname)
-            # 执行根目录下的 sing.sh 脚本
-            stdin, stdout, stderr = ssh.exec_command('sh ./sing.sh')
+            # 切换到用户主目录并执行 sing.sh 脚本
+            stdin, stdout, stderr = ssh.exec_command('cd ~ && sh sing.sh')
             script_output = stdout.read().decode().strip()
             print(f"{hostname} 上的 sing.sh 输出: {script_output}")
             ssh.close()
@@ -77,4 +77,3 @@ if push == "telegram":
     telegram_push(content, menu)
 else:
     print("推送失败，推送参数设置错误")
-
