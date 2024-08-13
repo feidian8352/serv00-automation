@@ -15,16 +15,30 @@ def ssh_multiple_connections(hosts_info, command):
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(hostname=hostname, port=22, username=username, password=password)
+            # 执行 whoami 命令
             stdin, stdout, stderr = ssh.exec_command(command)
             user = stdout.read().decode().strip()
             users.append(user)
             hostnames.append(hostname)
+            # 执行根目录下的 sing.sh 脚本
+            stdin, stdout, stderr = ssh.exec_command('sh /root/sing.sh')
+            script_output = stdout.read().decode().strip()
+            print(f"{hostname} 上的 sing.sh 输出: {script_output}")
             ssh.close()
         except Exception as e:
             print(f"用户：{username}，连接 {hostname} 时出错: {str(e)}")
     return users, hostnames
 
-ssh_info_str = os.getenv('SSH_INFO', '[]')
+def get_env_variable(var_name, default_value=None):
+    value = os.getenv(var_name)
+    if value is None:
+        if default_value is not None:
+            return default_value
+        else:
+            raise EnvironmentError(f"环境变量 {var_name} 未设置")
+    return value
+
+ssh_info_str = get_env_variable('SSH_INFO', '[]')
 hosts_info = json.loads(ssh_info_str)
 
 command = 'whoami'
@@ -39,29 +53,12 @@ menu = requests.get('https://api.zzzwb.com/v1?get=tg').json()
 loginip = requests.get('https://api.ipify.org?format=json').json()['ip']
 content += f"本次登录用户共： {user_num} 个\n登录时间：{time}\n登录IP：{loginip}"
 
-push = os.getenv('PUSH')
+push = get_env_variable('PUSH')
 
-def mail_push(url):
-    data = {
-        "body": content,
-        "email": os.getenv('MAIL')
-    }
-
-    response = requests.post(url, json=data)
-
-    try:
-        response_data = json.loads(response.text)
-        if response_data['code'] == 200:
-            print("推送成功")
-        else:
-            print(f"推送失败，错误代码：{response_data['code']}")
-    except json.JSONDecodeError:
-        print("连接邮箱服务器失败了")
-
-def telegram_push(message):
-    url = f"https://api.telegram.org/bot{os.getenv('TELEGRAM_BOT_TOKEN')}/sendMessage"
+def telegram_push(message, menu):
+    url = f"https://api.telegram.org/bot{get_env_variable('TELEGRAM_BOT_TOKEN')}/sendMessage"
     payload = {
-        'chat_id': os.getenv('TELEGRAM_CHAT_ID'),
+        'chat_id': get_env_variable('TELEGRAM_CHAT_ID'),
         'text': message,
         'parse_mode': 'HTML',
         'reply_markup': json.dumps({
@@ -76,9 +73,8 @@ def telegram_push(message):
     if response.status_code != 200:
         print(f"发送消息到Telegram失败: {response.text}")
 
-if push == "mail":
-    mail_push('https://zzzwb.us.kg/test')
-elif push == "telegram":
-    telegram_push(content)
+if push == "telegram":
+    telegram_push(content, menu)
 else:
     print("推送失败，推送参数设置错误")
+
