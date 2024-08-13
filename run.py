@@ -53,8 +53,6 @@ menu = requests.get('https://api.zzzwb.com/v1?get=tg').json()
 loginip = requests.get('https://api.ipify.org?format=json').json()['ip']
 content += f"本次登录用户共： {user_num} 个\n登录时间：{time}\n登录IP：{loginip}"
 
-push = get_env_variable('PUSH')
-
 def telegram_push(message, menu):
     url = f"https://api.telegram.org/bot{get_env_variable('TELEGRAM_BOT_TOKEN')}/sendMessage"
     payload = {
@@ -73,7 +71,4 @@ def telegram_push(message, menu):
     if response.status_code != 200:
         print(f"发送消息到Telegram失败: {response.text}")
 
-if push == "telegram":
-    telegram_push(content, menu)
-else:
-    print("推送失败，推送参数设置错误")
+telegram_push(content, menu)
