@@ -4,7 +4,7 @@ import requests
 import json
 from datetime import datetime, timezone, timedelta
 
-def ssh_multiple_connections(hosts_info, command):
+def ssh_multiple_connections(hosts_info):
     users = []
     hostnames = []
     script_outputs = []
@@ -16,15 +16,14 @@ def ssh_multiple_connections(hosts_info, command):
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(hostname=hostname, port=22, username=username, password=password)
-            # 执行 whoami 命令
-            stdin, stdout, stderr = ssh.exec_command(command)
-            user = stdout.read().decode().strip()
-            users.append(user)
-            hostnames.append(hostname)
             # 切换到用户主目录并执行 sing.sh 脚本
-            stdin, stdout, stderr = ssh.exec_command('cd ~ && sh sing.sh')
+            stdin, stdout, stderr = ssh.exec_command('cd ~ && ./sing.sh')
             script_output = stdout.read().decode().strip()
-            script_outputs.append(f"{hostname} 上的 sing.sh 输出: {script_output}")
+            script_error = stderr.read().decode().strip()
+            if script_error:
+                script_outputs.append(f"{hostname} 上的 sing.sh 执行错误: {script_error}")
+            else:
+                script_outputs.append(f"{hostname} 上的 sing.sh 输出: {script_output}")
             ssh.close()
         except Exception as e:
             print(f"用户：{username}，连接 {hostname} 时出错: {str(e)}")
@@ -43,8 +42,7 @@ def get_env_variable(var_name, default_value=None):
 ssh_info_str = get_env_variable('SSH_INFO', '[]')
 hosts_info = json.loads(ssh_info_str)
 
-command = 'whoami'
-user_list, hostname_list, script_outputs = ssh_multiple_connections(hosts_info, command)
+user_list, hostname_list, script_outputs = ssh_multiple_connections(hosts_info)
 user_num = len(user_list)
 content = "SSH服务器登录信息：\n"
 for user, hostname in zip(user_list, hostname_list):
