@@ -21,7 +21,7 @@ def ssh_multiple_connections(hosts_info, command):
             users.append(user)
             hostnames.append(hostname)
             # 执行根目录下的 sing.sh 脚本
-            stdin, stdout, stderr = ssh.exec_command('sh /root/sing.sh')
+            stdin, stdout, stderr = ssh.exec_command('sh ./sing.sh')
             script_output = stdout.read().decode().strip()
             print(f"{hostname} 上的 sing.sh 输出: {script_output}")
             ssh.close()
