@@ -16,8 +16,17 @@ def ssh_multiple_connections(hosts_info):
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(hostname=hostname, port=22, username=username, password=password)
+            
+            # 上传 sing.sh 脚本
+            sftp = ssh.open_sftp()
+            local_path = 'sing.sh'
+            remote_path = f'/home/{username}/sing.sh'
+            sftp.put(local_path, remote_path)
+            sftp.chmod(remote_path, 0o755)
+            sftp.close()
+            
             # 切换到用户主目录并执行 sing.sh 脚本
-            stdin, stdout, stderr = ssh.exec_command('cd ~ && ./sing.sh')
+            stdin, stdout, stderr = ssh.exec_command(f'cd ~ && ./sing.sh')
             script_output = stdout.read().decode().strip()
             script_error = stderr.read().decode().strip()
             if script_error:
