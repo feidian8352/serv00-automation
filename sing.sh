@@ -22,7 +22,12 @@ export HY2_PORT='15722'
 
 [[ "$HOSTNAME" == "s1.ct8.pl" ]] && WORKDIR="domains/${USERNAME}.ct8.pl/logs" || WORKDIR="domains/${USERNAME}.serv00.net/logs"
 [ -d "$WORKDIR" ] || (mkdir -p "$WORKDIR" && chmod 777 "$WORKDIR")
-ps -ef | grep $(whoami) | grep -v sshd | grep -v grep | awk '{print $2}' | xargs kill -9
+ps -ef | grep $(whoami) | grep -v sshd | grep -v grep | awk '{print $2}' | while read pid; do
+  if [ -e /proc/$pid ]; then
+    kill -9 $pid
+  fi
+done
+
 
 argo_configure() {
   if [[ -z $ARGO_AUTH || -z $ARGO_DOMAIN ]]; then
