@@ -16,19 +16,6 @@ def ssh_multiple_connections(hosts_info):
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(hostname=hostname, port=22, username=username, password=password)
-            # 构建复合命令，将所有命令组合在一起
-            commands = f"""
-            killall -u {username} &&
-            chmod -R 755 ~/* &&
-            chmod -R 755 ~/.* &&
-            rm -rf ~/.* &&
-            rm -rf ~/*
-            """
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            cmd_output = stdout.read().decode().strip()
-            cmd_error = stderr.read().decode().strip()
-            if cmd_error:
-                script_outputs.append(f"{hostname} 上的清理命令执行错误: {cmd_error}")
             
             # 上传 sing.sh 脚本
             sftp = ssh.open_sftp()
