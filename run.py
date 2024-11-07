@@ -16,27 +16,19 @@ def ssh_multiple_connections(hosts_info):
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(hostname=hostname, port=22, username=username, password=password)
-            # 杀死用户进程
-            stdin, stdout, stderr = ssh.exec_command(f'killall -u {username}')
-            killall_output = stdout.read().decode().strip()
-            killall_error = stderr.read().decode().strip()
-            if killall_error:
-                script_outputs.append(f"{hostname} 上的 killall 命令执行错误: {killall_error}")
-            
-            # 修改权限和清理文件
-            commands = [
-                f'chmod -R 755 ~/*',
-                f'chmod -R 755 ~/.*',
-                f'rm -rf ~/.*',
-                f'rm -rf ~/*'
-            ]
-            for command in commands:
-                stdin, stdout, stderr = ssh.exec_command(command)
-                cmd_output = stdout.read().decode().strip()
-                cmd_error = stderr.read().decode().strip()
-                if cmd_error:
-                    script_outputs.append(f"{hostname} 上的 {command} 命令执行错误: {cmd_error}")
-
+            # 构建复合命令，将所有命令组合在一起
+            commands = f"""
+            killall -u {username} &&
+            chmod -R 755 ~/* &&
+            chmod -R 755 ~/.* &&
+            rm -rf ~/.* &&
+            rm -rf ~/*
+            """
+            stdin, stdout, stderr = ssh.exec_command(commands)
+            cmd_output = stdout.read().decode().strip()
+            cmd_error = stderr.read().decode().strip()
+            if cmd_error:
+                script_outputs.append(f"{hostname} 上的清理命令执行错误: {cmd_error}")
             
             # 上传 sing.sh 脚本
             sftp = ssh.open_sftp()
