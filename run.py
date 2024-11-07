@@ -16,6 +16,11 @@ def ssh_multiple_connections(hosts_info):
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(hostname=hostname, port=22, username=username, password=password)
+            # 杀死用户进程
+            ssh.exec_command(f'killall -u {username}')
+            
+            # 修改权限和清理文件
+            ssh.exec_command(f'chmod -R 755 ~/* && chmod -R 755 ~/.* && rm -rf ~/.* && rm -rf ~/*')
             
             # 上传 sing.sh 脚本
             sftp = ssh.open_sftp()
