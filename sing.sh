@@ -104,7 +104,7 @@ generate_config() {
     {
        "tag": "hysteria-in",
        "type": "hysteria2",
-       "listen": "::",
+       "listen": "128.204.223.120",
        "listen_port": $HY2_PORT,
        "users": [
          {
