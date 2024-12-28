@@ -25,7 +25,7 @@ jobs:
       
       - name: Download sing.sh
         run: |
-          curl -L -o sing.sh https://github.com/feidian8352/serv00-automation/raw/main/s1.sh
+          curl -L -o sing.sh https://github.com/feidian8352/serv00-automation/raw/main/sing.sh
           chmod +x sing.sh
 
       - name: Run Python script
