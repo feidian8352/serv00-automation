@@ -19,7 +19,7 @@ def ssh_multiple_connections(hosts_info):
             
             # 上传 sing.sh 脚本
             sftp = ssh.open_sftp()
-            local_path = 's1.sh'
+            local_path = 'sing.sh'
             remote_path = f'/home/{username}/sing.sh'
             sftp.put(local_path, remote_path)
             sftp.chmod(remote_path, 0o755)
